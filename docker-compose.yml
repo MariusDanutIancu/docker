@@ -1,0 +1,44 @@
+version: '3'
+services:
+  db:
+    container_name: spring-db
+    image: postgres
+    volumes:
+      - spring-docker
+    ports:
+      - "8091:5432"
+    environment:
+      - POSTGRES_DB=dockerdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      spring-network:
+        aliases:
+          - db
+  web:
+    container_name: spring-web
+    build:
+      context: .
+      dockerfile: DockerFile
+    volumes:
+      - spring-docker
+    ports:
+      - "8090:8080"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://db:5432/dockerdb
+      - spring.datasource.username=postgres
+      - spring.datasource.password=docker
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      - db
+    networks:
+      spring-network:
+        aliases:
+          - web
+volumes:
+  spring-docker: {}
+networks:
+  spring-network:
+    driver: bridge
